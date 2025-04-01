@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  nodeapp:
+    build: .
+    container_name: nodeapp
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/mydatabase
+    command: ["node", "server.js"]
+
+volumes:
+  mongo_data:
